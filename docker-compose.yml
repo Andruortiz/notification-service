@@ -1,0 +1,76 @@
+# =============================================================================
+# Entorno de desarrollo completo: base de datos, broker y servicio.
+#
+#   docker compose up -d                  levanta todo
+#   docker compose up -d mongodb rabbitmq  solo la infraestructura, para
+#                                          ejecutar el servicio desde el IDE
+#
+# Las credenciales de este archivo son las de desarrollo y no valen fuera de
+# aqui. En entornos reales las inyecta la plataforma desde su almacen de
+# secretos.
+# =============================================================================
+
+services:
+
+  mongodb:
+    image: mongo:7.0
+    container_name: notification-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: notifications
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: notification-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"     # protocolo AMQP
+      - "15672:15672"   # consola de gestion: http://localhost:15672 (guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      MONGODB_URI: mongodb://mongodb:27017/notifications
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    # El servicio no arranca hasta que la base de datos y el broker respondan a
+    # su comprobacion de salud, no solo hasta que su contenedor exista.
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  mongodb-data:
+  rabbitmq-data:

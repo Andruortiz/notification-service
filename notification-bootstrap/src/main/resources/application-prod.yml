@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------------------
+# Perfil productivo.
+#
+# Toda credencial llega por variable de entorno, inyectada por la plataforma
+# desde su almacen de secretos. Este archivo nunca contiene un valor sensible.
+# ---------------------------------------------------------------------------
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASSWORD}
+    ssl:
+      enabled: ${RABBITMQ_SSL_ENABLED:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Solo lo que la plataforma necesita: sondas de salud y metricas.
+        include: health,info,prometheus
+  endpoint:
+    health:
+      # El detalle del estado no se expone sin autorizacion: revela topologia interna.
+      show-details: never
+
+notification:
+  rabbit:
+    concurrency: ${DISPATCH_CONCURRENCY:16}
+
+  reconciler:
+    interval: PT5M
+    batch-size: 200
+
+logging:
+  level:
+    root: WARN
+    co.edu.uco.notification: INFO

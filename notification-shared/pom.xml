@@ -38,6 +38,13 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
+        <!-- Solo metadatos de modulo para Spring Modulith; no arrastra infraestructura. -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
     </dependencies>
 
 </project>

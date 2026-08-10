@@ -1,0 +1,102 @@
+# ---------------------------------------------------------------------------
+# Configuracion comun a todos los entornos.
+#
+# Regla: aqui no hay credenciales ni direcciones de un entorno concreto. Todo
+# lo que cambia entre entornos vive en su perfil, y todo lo sensible llega por
+# variable de entorno.
+# ---------------------------------------------------------------------------
+spring:
+  application:
+    name: notification-service
+
+  profiles:
+    default: local
+
+  main:
+    banner-mode: off
+
+  # El apagado ordenado deja terminar lo que esta en curso antes de cerrar:
+  # sin esto, un despliegue perderia las notificaciones a medio despachar.
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+  data:
+    mongodb:
+      auto-index-creation: true
+
+  rabbitmq:
+    listener:
+      simple:
+        # Confirmacion manual: el mensaje solo se confirma cuando el despacho termino.
+        acknowledge-mode: manual
+        prefetch: 8
+        default-requeue-rejected: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+info:
+  application:
+    name: ${spring.application.name}
+    description: Componente de notificaciones multicanal
+
+notification:
+  rabbit:
+    concurrency: 4
+
+  reconciler:
+    enabled: true
+    interval: PT2M
+    batch-size: 50
+
+  # -------------------------------------------------------------------------
+  # Catalogo de canales.
+  #
+  # Esta seccion es el punto de extension del componente: dar de alta un canal
+  # es agregar una entrada aqui, sin tocar ni recompilar el codigo. Cuando
+  # exista el componente de Parametros, este contenido llegara de el.
+  # -------------------------------------------------------------------------
+  catalog:
+    channels:
+      EMAIL:
+        provider-id: simulated
+        enabled: true
+        max-attempts: 3
+        initial-backoff: PT30S
+        backoff-multiplier: 2.0
+      SMS:
+        provider-id: simulated
+        enabled: true
+        max-attempts: 2
+        initial-backoff: PT15S
+        backoff-multiplier: 2.0
+      PUSH:
+        provider-id: simulated
+        enabled: true
+        max-attempts: 3
+        initial-backoff: PT10S
+        backoff-multiplier: 1.5
+
+logging:
+  level:
+    co.edu.uco.notification: INFO

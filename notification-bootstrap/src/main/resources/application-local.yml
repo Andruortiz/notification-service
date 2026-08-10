@@ -1,0 +1,37 @@
+# ---------------------------------------------------------------------------
+# Perfil local: maquina del desarrollador, con la infraestructura levantada
+# mediante docker compose.
+#
+# Este archivo SI se versiona porque no contiene ningun secreto: solo apunta a
+# localhost con las credenciales por defecto de los contenedores de desarrollo.
+# Cualquier valor sensible propio va en un .env, que esta ignorado por git.
+# ---------------------------------------------------------------------------
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/notifications}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+notification:
+  reconciler:
+    # Intervalo corto en local para no esperar dos minutos al probar el reencolado.
+    interval: PT30S
+
+logging:
+  level:
+    co.edu.uco.notification: DEBUG
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG

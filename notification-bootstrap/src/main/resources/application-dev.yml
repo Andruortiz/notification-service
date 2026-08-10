@@ -1,0 +1,30 @@
+# ---------------------------------------------------------------------------
+# Perfil de desarrollo compartido.
+#
+# Sin valores por defecto para las credenciales: si falta una variable, el
+# servicio no arranca. Es preferible fallar al arrancar que quedar apuntando en
+# silencio a la base de datos equivocada.
+# ---------------------------------------------------------------------------
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASSWORD}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+notification:
+  rabbit:
+    concurrency: 8
+
+logging:
+  level:
+    co.edu.uco.notification: DEBUG

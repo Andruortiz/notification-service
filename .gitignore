@@ -9,8 +9,20 @@ target/
 logs/
 *.log
 
+# Volcados de fallo de la JVM
+hs_err_pid*.log
+replay_pid*.log
+
+# Diagramas de modulos: los regenera ./mvnw verify, no se versionan
+docs/modulith/
+
 # Environment
 .env
+.env.*
+
+# Configuracion local con secretos (los perfiles versionados no llevan credenciales)
+application-secrets.yml
+application-secrets.properties
 
 # OS
 .DS_Store
