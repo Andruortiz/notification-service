@@ -1,0 +1,23 @@
+# Todo lo que no hace falta dentro del contexto de construccion.
+# Cuanto menor sea el contexto, mas rapido es el build y menos riesgo hay de
+# colar un secreto en la imagen.
+
+target/
+**/target/
+
+.git/
+.gitignore
+
+.idea/
+*.iml
+
+.env
+.env.*
+application-secrets.yml
+
+*.log
+logs/
+
+docs/
+README.md
+*.md
