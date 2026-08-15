@@ -8,12 +8,13 @@
 spring:
   data:
     mongodb:
-      uri: ${MONGODB_URI}
+    uri: ${MONGODB_URI:mongodb://notification:notification_dev@localhost:27017/notification_service?authSource=admin}
+
 
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USER}
+    username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
 
 management:

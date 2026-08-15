@@ -19,6 +19,7 @@ docs/modulith/
 # Environment
 .env
 .env.*
+!.env.example
 
 # Configuracion local con secretos (los perfiles versionados no llevan credenciales)
 application-secrets.yml
