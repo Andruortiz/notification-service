@@ -48,6 +48,7 @@ docker compose up -d --build
 | API | http://localhost:8080/api/v1/notifications |
 | Estado del servicio | http://localhost:8080/actuator/health |
 | Consola de RabbitMQ | http://localhost:15672 (guest / guest) |
+| MongoDB | mongodb://localhost:27017 (admin / secret)|
 
 ### Probar el flujo completo
 
