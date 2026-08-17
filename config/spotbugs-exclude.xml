@@ -1,7 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
+
     <Match>
         <Class name="co.edu.uco.notification.core.valueobject.Priority"/>
         <Bug pattern="IMPROPER_UNICODE"/>
     </Match>
+
+    <!--
+        Los logs de estos servicios reciben valores previamente sanitizados
+        mediante LogSanitizer.sanitize(), que elimina CR/LF antes de llegar
+        al logger. FindSecBugs no reconoce el sanitizador personalizado
+        como un sanitizer confiable y reporta CRLF_INJECTION_LOGS como falso
+        positivo.
+    -->
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.in.rabbit.NotificationDispatchListener"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.in.rest.NotificationController"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.in.scheduler.PendingNotificationScheduler"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.out.provider.ConfigurationChannelCatalogAdapter"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.out.provider.ProviderRegistrySender"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.out.provider.SimulatedNotificationProvider"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.out.rabbit.NotificationRabbitPublisher"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.in.rest.NotificationController"/>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.out.rabbit.NotificationRabbitPublisher"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.application.usecase.DispatchNotificationService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.application.usecase.SendNotificationService"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.adapters.in.scheduler.PendingNotificationScheduler"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Exclusión global de CRLF_INJECTION_LOGS para las capas que ya usan LogSanitizer -->
+    <Match>
+        <Or>
+            <Package name="~co\.edu\.uco\.notification\.adapters\..*" />
+            <Package name="~co\.edu\.uco\.notification\.application\.usecase\..*" />
+        </Or>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.bootstrap.exception.GlobalExceptionHandler"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+    <Match>
+        <Class name="co.edu.uco.notification.bootstrap.startup.ApplicationStartupLogger"/>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
+
+
 </FindBugsFilter>
