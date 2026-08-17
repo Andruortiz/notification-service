@@ -6,7 +6,7 @@ public class LogSanitizer {
 
     public static String sanitize(final String value) {
         if (value == null) {
-            return "null";
+            return "";
         }
 
         return String.valueOf(value)

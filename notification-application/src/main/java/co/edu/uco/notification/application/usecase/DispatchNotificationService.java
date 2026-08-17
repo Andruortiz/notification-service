@@ -56,9 +56,18 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(() -> new NotificationNotFoundException(id)))
                 .filter(notification -> !notification.status().isFinal())
-                .doOnDiscard(Notification.class, notification -> LOG.debug(
-                        "Se ignora el despacho de {}: ya está en estado final {}",
-                        LogSanitizer.sanitize(notification.id().value()), LogSanitizer.sanitize(notification.status().name())))
+                .doOnDiscard(Notification.class, notification -> {
+                    final String sanitizedNotificationId =
+                            LogSanitizer.sanitize(notification.id().value());
+
+                    final String status =
+                            LogSanitizer.sanitize(notification.status().name());
+
+                    LOG.debug(
+                            "Se ignora el despacho de {}: ya está en estado final {}",
+                            sanitizedNotificationId,
+                            status);
+                })
                 .flatMap(this::execute)
                 .then();
     }
@@ -85,26 +94,58 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
             final RetryPolicy retryPolicy) {
 
         if (outcome.accepted()) {
-            notification.markDelivered(outcome.providerId(), outcome.providerMessageId(), clock.instant());
+            notification.markDelivered(
+                    outcome.providerId(),
+                    outcome.providerMessageId(),
+                    clock.instant());
             return notification;
         }
 
-        final int attemptsMade = notification.attempts().size() + 1;
+        final String notificationId =
+                LogSanitizer.sanitize(notification.id().value());
+
+        final String providerId =
+                LogSanitizer.sanitize(outcome.providerId());
+
+        final String detail =
+                LogSanitizer.sanitize(outcome.detail());
+
+        final int attemptsMade =
+                notification.attempts().size() + 1;
+
         if (outcome.recoverable() && retryPolicy.shouldRetry(attemptsMade)) {
-            LOG.warn("Fallo recuperable en {} con {}: {}. Intento {} de {}",
+
+            LOG.warn(
+                    "Fallo recuperable en {} con {}: {}. Intento {} de {}",
+                    notificationId,
+                    providerId,
+                    detail,
                     attemptsMade,
                     retryPolicy.maxAttempts());
-            notification.markRecoverable(outcome.providerId(), outcome.detail(), clock.instant());
+
+            notification.markRecoverable(
+                    providerId,
+                    detail,
+                    clock.instant());
+
             return notification;
         }
 
         final String reason = outcome.recoverable()
-                ? "Reintentos agotados: " + outcome.detail()
-                : outcome.detail();
-        LOG.error("Fallo definitivo en {} con {}: {}",   LogSanitizer.sanitize(notification.id().value()),
-                LogSanitizer.sanitize(outcome.providerId()),
-                LogSanitizer.sanitize(reason));
-        notification.markFailed(outcome.providerId(), LogSanitizer.sanitize(reason), clock.instant());
+                ? "Reintentos agotados: " + detail
+                : detail;
+
+        LOG.error(
+                "Fallo definitivo en {} con {}: {}",
+                notificationId,
+                providerId,
+                reason);
+
+        notification.markFailed(
+                providerId,
+                reason,
+                clock.instant());
+
         return notification;
     }
 
@@ -117,12 +158,19 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
             final ChannelCatalogPort.ChannelRoute route,
             final Throwable error) {
 
-        final String errorMessage = LogSanitizer.sanitize(error.getMessage());
+        final String notificationId =
+                LogSanitizer.sanitize(notification.id().value());
 
-        LOG.error("Error no clasificado al despachar {}",    LogSanitizer.sanitize(notification.id().value()),
+        final String errorMessage =
+                LogSanitizer.sanitize(error.getMessage());
+
+        LOG.error(
+                "Error no clasificado al despachar {}: {}",
+                notificationId,
                 errorMessage);
-        final int attemptsMade = notification.attempts().size() + 1;
 
+        final int attemptsMade =
+                notification.attempts().size() + 1;
 
         if (route.retryPolicy().shouldRetry(attemptsMade)) {
             notification.markRecoverable(
@@ -135,6 +183,7 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
                     errorMessage,
                     clock.instant());
         }
+
         return notification;
     }
 
