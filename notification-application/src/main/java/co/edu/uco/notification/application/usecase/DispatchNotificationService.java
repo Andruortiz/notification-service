@@ -10,6 +10,7 @@ import co.edu.uco.notification.core.exception.NotificationNotFoundException;
 import co.edu.uco.notification.core.repository.NotificationRepository;
 import co.edu.uco.notification.core.service.RetryPolicy;
 import co.edu.uco.notification.core.valueobject.NotificationId;
+import co.edu.uco.notification.shared.logging.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -57,7 +58,7 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
                 .filter(notification -> !notification.status().isFinal())
                 .doOnDiscard(Notification.class, notification -> LOG.debug(
                         "Se ignora el despacho de {}: ya está en estado final {}",
-                        notification.id(), notification.status()))
+                        LogSanitizer.sanitize(notification.id().value()), LogSanitizer.sanitize(notification.status().name())))
                 .flatMap(this::execute)
                 .then();
     }
@@ -91,8 +92,8 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
         final int attemptsMade = notification.attempts().size() + 1;
         if (outcome.recoverable() && retryPolicy.shouldRetry(attemptsMade)) {
             LOG.warn("Fallo recuperable en {} con {}: {}. Intento {} de {}",
-                    notification.id(), outcome.providerId(), outcome.detail(),
-                    attemptsMade, retryPolicy.maxAttempts());
+                    attemptsMade,
+                    retryPolicy.maxAttempts());
             notification.markRecoverable(outcome.providerId(), outcome.detail(), clock.instant());
             return notification;
         }
@@ -100,8 +101,10 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
         final String reason = outcome.recoverable()
                 ? "Reintentos agotados: " + outcome.detail()
                 : outcome.detail();
-        LOG.error("Fallo definitivo en {} con {}: {}", notification.id(), outcome.providerId(), reason);
-        notification.markFailed(outcome.providerId(), reason, clock.instant());
+        LOG.error("Fallo definitivo en {} con {}: {}",   LogSanitizer.sanitize(notification.id().value()),
+                LogSanitizer.sanitize(outcome.providerId()),
+                LogSanitizer.sanitize(reason));
+        notification.markFailed(outcome.providerId(), LogSanitizer.sanitize(reason), clock.instant());
         return notification;
     }
 
@@ -114,12 +117,23 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
             final ChannelCatalogPort.ChannelRoute route,
             final Throwable error) {
 
-        LOG.error("Error no clasificado al despachar {}", notification.id(), error);
+        final String errorMessage = LogSanitizer.sanitize(error.getMessage());
+
+        LOG.error("Error no clasificado al despachar {}",    LogSanitizer.sanitize(notification.id().value()),
+                errorMessage);
         final int attemptsMade = notification.attempts().size() + 1;
+
+
         if (route.retryPolicy().shouldRetry(attemptsMade)) {
-            notification.markRecoverable(route.providerId(), error.getMessage(), clock.instant());
+            notification.markRecoverable(
+                    route.providerId(),
+                    errorMessage,
+                    clock.instant());
         } else {
-            notification.markFailed(route.providerId(), error.getMessage(), clock.instant());
+            notification.markFailed(
+                    route.providerId(),
+                    errorMessage,
+                    clock.instant());
         }
         return notification;
     }
@@ -128,4 +142,6 @@ public class DispatchNotificationService implements DispatchNotificationUseCase 
         return repository.save(notification)
                 .flatMap(saved -> eventPublisher.publish(saved.pullEvents()).thenReturn(saved));
     }
+
+
 }

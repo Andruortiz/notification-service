@@ -14,6 +14,7 @@ import co.edu.uco.notification.core.valueobject.NotificationContent;
 import co.edu.uco.notification.core.valueobject.Priority;
 import co.edu.uco.notification.core.valueobject.Recipient;
 import co.edu.uco.notification.core.valueobject.TenantId;
+import co.edu.uco.notification.shared.logging.LogSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -73,7 +74,9 @@ public class SendNotificationService implements SendNotificationUseCase {
         return repository.findByTenantAndExternalId(tenantId, externalId)
                 .map(existing -> {
                     LOG.info("Solicitud repetida para la referencia {} del cliente {}; se devuelve {}",
-                            externalId, tenantId, existing.id());
+                            LogSanitizer.sanitize(externalId.value()),
+                            LogSanitizer.sanitize(tenantId.value()),
+                            LogSanitizer.sanitize(existing.id().value()));
                     return SendNotificationResult.duplicated(
                             existing.id().value(), existing.status().name(), existing.createdAt());
                 })
@@ -104,7 +107,10 @@ public class SendNotificationService implements SendNotificationUseCase {
                 })
                 .doOnSuccess(saved -> LOG.info(
                         "Notificación aceptada id={} cliente={} canal={} prioridad={}",
-                        saved.id(), saved.tenantId(), saved.channel(), saved.priority()))
+                        LogSanitizer.sanitize(saved.id().value()),
+                        LogSanitizer.sanitize(saved.tenantId().value()),
+                        LogSanitizer.sanitize(saved.channel().value()),
+                        LogSanitizer.sanitize(saved.priority().name())))
                 .map(saved -> SendNotificationResult.accepted(
                         saved.id().value(), saved.status().name(), saved.createdAt()));
     }

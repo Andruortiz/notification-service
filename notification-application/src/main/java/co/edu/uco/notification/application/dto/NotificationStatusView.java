@@ -27,6 +27,18 @@ public record NotificationStatusView(
         Instant updatedAt,
         List<AttemptView> attempts) {
 
+    public NotificationStatusView {
+        attempts = attempts == null ? List.of() : List.copyOf(attempts);
+    }
+
+    /**
+     * Sobrescribe el accessor para retornar una copia defensiva y satisfacer a SpotBugs (EI_EXPOSE_REP).
+     */
+    @Override
+    public List<AttemptView> attempts() {
+        return attempts; // Ya es una lista inmutable segura gracias al constructor compacto
+    }
+
     /**
      * Intento de envío tal como se expone hacia el exterior.
      *

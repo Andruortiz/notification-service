@@ -22,4 +22,8 @@ public record SendNotificationCommand(
         String recipient,
         Map<String, Object> content,
         String priority) {
+
+    public SendNotificationCommand {
+        content = content == null ? Map.of() : Map.copyOf(content);
+    }
 }
