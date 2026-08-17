@@ -31,7 +31,10 @@ class ModularityTests {
     @Test
     @DisplayName("Genera la documentación de módulos en docs/modulith")
     void writesDocumentation() {
-        new Documenter(MODULES, "../docs/modulith")
+        new Documenter(
+                MODULES,
+                Documenter.Options.defaults()
+                        .withOutputFolder("../docs/modulith"))
                 .writeModulesAsPlantUml()
                 .writeIndividualModulesAsPlantUml()
                 .writeModuleCanvases();
