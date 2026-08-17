@@ -38,4 +38,8 @@ public record SendNotificationRequest(
         Map<String, Object> content,
 
         String priority) {
+
+        public SendNotificationRequest {
+                content = content == null ? Map.of() : Map.copyOf(content);
+        }
 }

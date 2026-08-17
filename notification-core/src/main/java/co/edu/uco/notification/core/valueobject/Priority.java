@@ -26,6 +26,7 @@ public enum Priority {
     }
 
     /** Convierte el valor recibido, aplicando {@link #MEDIUM} cuando no se indica ninguno. */
+
     public static Priority fromNullable(final String candidate) {
         if (candidate == null || candidate.isBlank()) {
             return MEDIUM;

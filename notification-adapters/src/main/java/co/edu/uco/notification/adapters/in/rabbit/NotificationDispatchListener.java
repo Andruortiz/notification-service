@@ -3,6 +3,7 @@ package co.edu.uco.notification.adapters.in.rabbit;
 import co.edu.uco.notification.adapters.config.RabbitConfiguration;
 import co.edu.uco.notification.adapters.out.rabbit.NotificationDispatchMessage;
 import co.edu.uco.notification.application.port.in.DispatchNotificationUseCase;
+import co.edu.uco.notification.shared.logging.LogSanitizer;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +53,17 @@ public class NotificationDispatchListener {
             dispatchNotificationUseCase.dispatch(message.notificationId()).block(DISPATCH_TIMEOUT);
             channel.basicAck(deliveryTag, false);
         } catch (final Exception dispatchFailure) {
-            LOG.error("Fallo al despachar {}; el mensaje se envía a la cola de fallidos",
-                    message.notificationId(), dispatchFailure);
+            final String notificationId =
+                    LogSanitizer.sanitize(message.notificationId());
+
+            final String errorMessage =
+                    LogSanitizer.sanitize(dispatchFailure.getMessage());
+
+            LOG.error(
+                    "Fallo al despachar {}; el mensaje se envía a la cola de fallidos. Error: {}",
+                    notificationId,
+                    errorMessage
+            );
             rejectWithoutRequeue(channel, deliveryTag, message);
         }
     }
@@ -68,7 +78,16 @@ public class NotificationDispatchListener {
         try {
             channel.basicNack(deliveryTag, false, false);
         } catch (final IOException nackFailure) {
-            LOG.error("No se pudo rechazar el mensaje de {}", message.notificationId(), nackFailure);
+            final String notificationId =
+                    LogSanitizer.sanitize(message.notificationId());
+            final String errorMessage =
+                    LogSanitizer.sanitize(nackFailure.getMessage());
+
+            LOG.error(
+                    "No se pudo rechazar el mensaje de {}. Error: {}",
+                    notificationId,
+                    errorMessage
+            );
         }
     }
 }

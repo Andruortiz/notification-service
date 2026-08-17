@@ -46,7 +46,6 @@ public class NotificationDocument {
     public NotificationDocument() {
         // Requerido por el mapeo de Spring Data.
     }
-
     public String getId() {
         return id;
     }
@@ -88,11 +87,11 @@ public class NotificationDocument {
     }
 
     public Map<String, Object> getContent() {
-        return content;
+        return content == null ? Map.of() : Map.copyOf(content);
     }
 
     public void setContent(final Map<String, Object> content) {
-        this.content = content;
+        this.content = content == null ? Map.of() : Map.copyOf(content);
     }
 
     public String getPriority() {
@@ -136,11 +135,11 @@ public class NotificationDocument {
     }
 
     public List<DeliveryAttemptDocument> getAttempts() {
-        return attempts;
+        return attempts == null ? List.of() : List.copyOf(attempts);
     }
 
     public void setAttempts(final List<DeliveryAttemptDocument> attempts) {
-        this.attempts = attempts;
+        this.attempts = attempts == null ? List.of() : List.copyOf(attempts);
     }
 
     public Long getVersion() {

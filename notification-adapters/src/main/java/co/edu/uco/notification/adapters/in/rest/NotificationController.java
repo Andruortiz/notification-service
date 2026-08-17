@@ -8,6 +8,7 @@ import co.edu.uco.notification.application.port.in.GetNotificationStatusUseCase;
 import co.edu.uco.notification.application.port.in.SendNotificationUseCase;
 import co.edu.uco.notification.application.query.GetNotificationStatusQuery;
 import co.edu.uco.notification.shared.correlation.CorrelationId;
+import co.edu.uco.notification.shared.logging.LogSanitizer;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +68,21 @@ public class NotificationController {
             @Valid @RequestBody final SendNotificationRequest request) {
 
         final CorrelationId correlation = CorrelationId.ofNullable(correlationId);
-        LOG.info("Solicitud de envío recibida cliente={} canal={} correlacion={}",
-                tenantId, request.channel(), correlation);
+        final String safeTenantId =
+                LogSanitizer.sanitize(tenantId);
+
+        final String safeChannel =
+                LogSanitizer.sanitize(request.channel());
+
+        final String safeCorrelation =
+                LogSanitizer.sanitize(correlation != null ? correlation.value() : null);
+
+        LOG.info(
+                "Solicitud de envío recibida cliente={} canal={} correlacion={}",
+                safeTenantId,
+                safeChannel,
+                safeCorrelation
+        );
 
         return sendNotificationUseCase.send(mapper.toCommand(tenantId, request))
                 .map(mapper::toResponse);
