@@ -31,7 +31,16 @@ public interface NotificationProvider {
      * @param supportedChannels canales que sabe atender
      * @param enabled           permite retirarlo temporalmente sin desplegar
      */
-    record ProviderDescriptor(String providerId, Set<String> supportedChannels, boolean enabled) {
+    public record ProviderDescriptor(
+            String providerId,
+            Set<String> supportedChannels,
+            boolean enabled) {
+
+        public ProviderDescriptor {
+            supportedChannels = supportedChannels == null
+                    ? Set.of()
+                    : Set.copyOf(supportedChannels);
+        }
 
         public boolean supports(final String channel) {
             return enabled && supportedChannels.contains(channel);
