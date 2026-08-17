@@ -27,6 +27,10 @@ public record NotificationDetailResponse(
         Instant updatedAt,
         List<AttemptResponse> attempts) {
 
+    public NotificationDetailResponse {
+        attempts = attempts == null ? List.of() : List.copyOf(attempts);
+    }
+
     /**
      * Intento de envío expuesto hacia el exterior.
      *
