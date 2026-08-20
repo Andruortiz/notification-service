@@ -79,7 +79,7 @@ notification:
   catalog:
     channels:
       EMAIL:
-        provider-id: simulated
+        provider-id: brevo
         enabled: true
         max-attempts: 3
         initial-backoff: PT30S
