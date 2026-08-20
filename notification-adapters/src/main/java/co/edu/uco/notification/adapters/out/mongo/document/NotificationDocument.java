@@ -40,8 +40,7 @@ public class NotificationDocument {
     private Instant updatedAt;
     private List<DeliveryAttemptDocument> attempts;
 
-    @Version
-    private Long version;
+
 
     public NotificationDocument() {
         // Requerido por el mapeo de Spring Data.
@@ -142,11 +141,5 @@ public class NotificationDocument {
         this.attempts = attempts == null ? List.of() : List.copyOf(attempts);
     }
 
-    public Long getVersion() {
-        return version;
-    }
 
-    public void setVersion(final Long version) {
-        this.version = version;
-    }
 }

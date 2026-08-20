@@ -8,8 +8,12 @@
 spring:
   data:
     mongodb:
-    uri: ${MONGODB_URI:mongodb://notification:notification_dev@localhost:27017/notification_service?authSource=admin}
-
+    host: ${MONGO_HOST:localhost}
+    port: ${MONGO_PORT:27017}
+    database: ${MONGO_DATABASE:notification}
+    username: ${MONGO_USERNAME}
+    password: ${MONGO_PASSWORD}
+    authentication-database: ${MONGO_AUTH_SOURCE:admin}
 
   rabbitmq:
     host: ${RABBITMQ_HOST}
